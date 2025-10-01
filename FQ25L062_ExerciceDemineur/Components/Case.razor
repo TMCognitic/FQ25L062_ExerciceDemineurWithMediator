@@ -1,0 +1,56 @@
+﻿@if (!_display)
+{
+    <div class="case" @onclick="OnClick">
+    </div>
+}
+else
+{
+    <div class="casedisplayed">
+        <p class="@Style">
+            @Content
+        </p>
+    </div>
+}
+@code {
+    [Parameter]
+    public int X { get; set; }
+
+    [Parameter]
+    public int Y { get; set; }
+
+    private string Style { get => $"p{(int)_value}"; }
+
+    private char Content
+    {
+        get
+        {
+            return _value switch
+            {
+                CaseValue.Empty => '0',
+                CaseValue.One => '1',
+                CaseValue.Two => '2',
+                CaseValue.Three => '3',
+                CaseValue.Four => '4',
+                CaseValue.Five => '5',
+                CaseValue.Six => '6',
+                CaseValue.Seven => '7',
+                CaseValue.Eight => '8',
+                _ => 'X',
+            };
+        }
+    }
+
+    private CaseValue _value;
+
+    private bool _display;
+
+    protected override void OnInitialized()
+    {
+        
+    }
+
+    private void OnClick()
+    {
+        _display = true;
+    }
+}

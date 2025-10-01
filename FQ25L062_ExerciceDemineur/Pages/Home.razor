@@ -1,0 +1,32 @@
+﻿@page "/"
+
+<PageTitle>Démineur</PageTitle>
+
+<table>
+    <tbody>
+        @for (int y = 0; y < 10; y++)
+        {
+            <tr>
+                @for (int x = 0; x < 10; x++)
+                {
+                    <td>
+                        <Case X="x" Y="y" />
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (message is not null)
+{
+    <div>
+        <h1>@message</h1>
+    </div>
+}
+
+@code
+{
+    string? message = null;
+    bool firstClick = true;
+}

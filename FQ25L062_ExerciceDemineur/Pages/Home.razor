@@ -29,4 +29,52 @@
 {
     string? message = null;
     bool firstClick = true;
+
+    protected override void OnInitialized()
+    {
+        Mediator<FirstClickMessage>.Instance.Register(OnFirstClickMessage);
+        Mediator<BoomMessage>.Instance.Register(OnBoomMessage);
+        Mediator<WinMessage>.Instance.Register(OnWinMessage);
+    }
+
+    private void OnFirstClickMessage(FirstClickMessage message)
+    {
+        Mediator<FirstClickMessage>.Instance.Unregister(OnFirstClickMessage);
+
+        //Générate Bombs
+        for(int i = 0; i < 10;)
+        {
+            int x = Random.Shared.Next(10);
+            int y = Random.Shared.Next(10);
+
+            while(message.X == x && message.Y == x)
+            {
+                x = Random.Shared.Next(10);
+                y = Random.Shared.Next(10);
+            }
+
+            SetHasBombMessage setHasBombMessage = new();
+            Mediator<SetHasBombMessage>.Instance.Send(setHasBombMessage, d => d.Target is Case c && c.X == x && c.Y == y);
+
+            if(setHasBombMessage.Result)
+            {
+                i++;
+            }
+        }    
+    }
+
+    private void OnBoomMessage(BoomMessage _)
+    {
+        Mediator<BoomMessage>.Instance.Register(OnBoomMessage);
+        message = "Vous êtes mort!!";
+        StateHasChanged();
+        Mediator<DisplayMessage>.Instance.Send(new DisplayMessage(), d => d.Target is Case c);
+    }
+
+    private void OnWinMessage(WinMessage _)
+    {
+        Mediator<BoomMessage>.Instance.Register(OnBoomMessage);
+        message = "Vous avez gagné!!";
+        StateHasChanged();        
+    }
 }

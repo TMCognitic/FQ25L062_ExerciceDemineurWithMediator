@@ -1,4 +1,6 @@
-﻿@if (!_display)
+﻿@implements IDisposable
+
+@if (!_display)
 {
     <div class="case" @onclick="OnClick">
     </div>
@@ -12,33 +14,29 @@ else
     </div>
 }
 @code {
+    private static int HiddenCase;
+    private static bool isFirstClick = true;
+
     [Parameter]
     public int X { get; set; }
 
     [Parameter]
     public int Y { get; set; }
 
-    private string Style { get => $"p{(int)_value}"; }
+    private string Style => $"p{(int)_value}";
 
-    private char Content
-    {
-        get
-        {
-            return _value switch
-            {
-                CaseValue.Empty => '0',
-                CaseValue.One => '1',
-                CaseValue.Two => '2',
-                CaseValue.Three => '3',
-                CaseValue.Four => '4',
-                CaseValue.Five => '5',
-                CaseValue.Six => '6',
-                CaseValue.Seven => '7',
-                CaseValue.Eight => '8',
-                _ => 'X',
-            };
-        }
-    }
+    private char Content => _value switch {
+        CaseValue.Empty => '0',
+        CaseValue.One => '1',
+        CaseValue.Two => '2',
+        CaseValue.Three => '3',
+        CaseValue.Four => '4',
+        CaseValue.Five => '5',
+        CaseValue.Six => '6',
+        CaseValue.Seven => '7',
+        CaseValue.Eight => '8',
+        _ => 'X'
+    };
 
     private CaseValue _value;
 
@@ -46,11 +44,65 @@ else
 
     protected override void OnInitialized()
     {
-        
+        HiddenCase++;
+        Mediator<DisplayMessage>.Instance.Register(OnDisplayMessage);
+        Mediator<SetHasBombMessage>.Instance.Register(OnSetHasBombMessage);
+        Mediator<IncrementMessage>.Instance.Register(OnIncrementMessage);
     }
 
     private void OnClick()
     {
+        Mediator<DisplayMessage>.Instance.Unregister(OnDisplayMessage);        
         _display = true;
+        HiddenCase--;
+        StateHasChanged();
+
+        if(isFirstClick)
+        {
+            isFirstClick = false;
+            Mediator<FirstClickMessage>.Instance.Send(new FirstClickMessage(X, Y));
+        }
+
+        if (_value is CaseValue.Empty)
+            Mediator<DisplayMessage>.Instance.Send(new DisplayMessage(), d => d.Target is Case c && Math.Abs(c.X - X) < 2 && Math.Abs(c.Y - Y) < 2);
+
+        if (_value is CaseValue.Bomb)
+            Mediator<BoomMessage>.Instance.Send(new BoomMessage());
+
+        if(HiddenCase == 10)
+        {
+            Mediator<WinMessage>.Instance.Send(new WinMessage());
+        }
+    }
+
+    private void OnDisplayMessage(DisplayMessage message)
+    {
+        if(!_display)
+            OnClick();
+    }
+
+    private void OnIncrementMessage(IncrementMessage message)
+    {
+        _value++;
+        StateHasChanged();
+    }
+
+    private void OnSetHasBombMessage(SetHasBombMessage message)
+    {
+        if (_value is CaseValue.Bomb)
+            return;
+
+        Mediator<SetHasBombMessage>.Instance.Unregister(OnSetHasBombMessage);
+        Mediator<IncrementMessage>.Instance.Unregister(OnIncrementMessage);
+        _value = CaseValue.Bomb;
+        message.Result = true;
+        Mediator<IncrementMessage>.Instance.Send(new IncrementMessage(), d => d.Target is Case c && Math.Abs(c.X - X) < 2 && Math.Abs(c.Y - Y) < 2);
+    }
+
+    public void Dispose()
+    {
+        Mediator<DisplayMessage>.Instance.Unregister(OnDisplayMessage);
+        Mediator<SetHasBombMessage>.Instance.Unregister(OnSetHasBombMessage);
+        Mediator<IncrementMessage>.Instance.Unregister(OnIncrementMessage);
     }
 }

@@ -47,7 +47,7 @@
             int x = Random.Shared.Next(10);
             int y = Random.Shared.Next(10);
 
-            while(message.X == x && message.Y == x)
+            while(message.X == x && message.Y == y)
             {
                 x = Random.Shared.Next(10);
                 y = Random.Shared.Next(10);
@@ -73,7 +73,7 @@
 
     private void OnWinMessage(WinMessage _)
     {
-        Mediator<BoomMessage>.Instance.Register(OnBoomMessage);
+        Mediator<WinMessage>.Instance.Register(OnWinMessage);
         message = "Vous avez gagné!!";
         StateHasChanged();        
     }

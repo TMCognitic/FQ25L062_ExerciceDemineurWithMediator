@@ -1,4 +1,6 @@
-﻿@page "/"
+﻿@implements IDisposable
+
+@page "/"
 
 <PageTitle>Démineur</PageTitle>
 
@@ -65,7 +67,7 @@
 
     private void OnBoomMessage(BoomMessage _)
     {
-        Mediator<BoomMessage>.Instance.Register(OnBoomMessage);
+        Mediator<BoomMessage>.Instance.Unregister(OnBoomMessage);
         message = "Vous êtes mort!!";
         StateHasChanged();
         Mediator<DisplayMessage>.Instance.Send(new DisplayMessage(), d => d.Target is Case c);
@@ -73,8 +75,14 @@
 
     private void OnWinMessage(WinMessage _)
     {
-        Mediator<WinMessage>.Instance.Register(OnWinMessage);
+        Mediator<WinMessage>.Instance.Unregister(OnWinMessage);
         message = "Vous avez gagné!!";
         StateHasChanged();        
+    }
+
+    public void Dispose()
+    {
+        Mediator<BoomMessage>.Instance.Unregister(OnBoomMessage);
+        Mediator<WinMessage>.Instance.Unregister(OnWinMessage);
     }
 }
